@@ -1,0 +1,163 @@
+En el capítulo anterior conocimos los principios detrás de la regresión lineal, considerando para ello una única
+variable predictora y una variable de respuesta. Sin embargo, en la vida real es más frecuente que un fenómeno
+sea explicado por muchas variables.
+
+Una regresión lineal con múltiples variables tiene la forma que se presenta en la ecuación 15.1, donde:
+Cada xi es un predictor.
+Cada βi corresponde a un parámetro del modelo.
+k es la cantidad de predictores.
+yˆ es una estimación de la respuesta.
+yˆ = β0 + β1x1 + β2x2 + . . . + +βkxk
+
+
+Al igual que en el caso de la regresión lineal simple (RLS), la RLM requiere verificar algunas condiciones:
+1. La distribución de los residuos debe ser cercana a la normal.
+2. La variabilidad de los residuos debe ser aproximadamente constante.
+3. Los residuos deben ser independientes entre sí.
+4. Cada variable se relaciona linealmente con la respuesta
+
+
+RLM CON PREDICTORES CATEGÓRICOS
+Imaginemos que tenemos una variable categórica con k niveles. El primer paso consiste en crear k − 1 nuevas
+variables artificiales. A continuación, para cada una de estas nuevas variables, escogemos un nivel diferente
+de la variable original y asignamos un 1 a todas las observaciones que tengan ese nivel y un 0 a las restantes.
+Para entender mejor esta idea, supongamos que un conjunto de datos tiene la variable categórica tipo, con
+cuatro niveles: A, B, C y D. Creamos tres nuevas variables, por ejemplo, tipo_A, tipo_B y tipo_C. La variable
+tipo_A contiene tantas observaciones como la variable original, con un 1 para aquellas observaciones en que
+tipo toma el valor A y un 0 para las restantes. Para las variables tipo_B y tipo_C se procede de manera
+análoga. Puesto que solo se crean k − 1 variables artificiales, se descarta aquella correspondiente al nivel D de
+la variable tipo.
+
+
+En R, podemos hacer esta tarea de manera sencilla mediante la función dummy.data.frame(data, names,
+drop) del paquete dummies, donde:
+data: matriz de datos.
+names: nombres de las columnas para las que se desea crear variables artificiales. Si se omite este
+argumento, se crean variables artificiales para todas las variables categóricas y de tipo string.
+drop: indicador booleano que, cuando es verdadero, descarta la variable original del resultado.
+
+CONDICIONES PARA USAR RLM
+Llegado este punto, necesitamos examinar con más detalle las condiciones que debemos cumplir para que un
+modelo de regresión lineal sea generalizable:
+1. Las variables predictoras deben ser cuantitativas o dicotómicas (de ahí la necesidad de variables indicadoras para manejar más de dos niveles).
+2. La variable de respuesta debe ser cuantitativa y continua, sin restricciones para su variabilidad.
+3. Los predictores deben tener algún grado de variabilidad (su varianza no debe ser igual a cero). En otras
+palabras, no pueden ser constantes.
+4. No debe existir multicolinealidad. Esto significa que no deben existir relaciones lineales fuertes entre
+dos o más predictores (coeficientes de correlación altos).
+5. Los residuos deben ser homocedásticos (con varianzas similares) para cada nivel de los predictores.
+6. Los residuos deben seguir una distribución cercana a la normal centrada en cero.
+7. Los valores de la variable de respuesta son independientes entre sí.
+8. Cada predictor se relaciona linealmente con la variable de respuesta.
+
+EVALUACIÓN DEL AJUSTE DE UNA RLM
+Así, para evaluar una RLM tenemos que usar un coeficiente de determinación ajustado. Algunos autores
+han propuesto distintas maneras de efectuar este ajuste, una de las cuales presentamos en la ecuación.
+
+Existen otras alternativas para evaluar la bondad de ajuste de un modelo que se basan en el principio de
+parsimonia, también llamado navaja de Occam, el cual indica que un modelo debe mantenerse tan simple
+como sea posible. Dos de ellas son el criterio de información de Akaike, abreviado AIC, y el criterio
+bayesiano de Schwarz (BIC o SBC), que penalizan el modelo por contener variables adicionales, por lo que
+mientras menor sea su valor, mejor será el modelo.
+Para el modelo que habíamos ajustado usando únicamente el peso como predictor, obtenemos AIC = 166, 03
+y BIC = 170, 43. Del mismo modo, para el modelo que usa como predictores el peso y el cuarto de milla, en
+cambio, tenemos que que AIC = 156, 72 y BIC = 162, 58. En consecuencia, el segundo modelo parece ser
+“mejor” bajo estos criterios.
+Otra opción, adecuada cuando necesitamos saber cuáles predictores son estadísticamente significativos, es
+observar los valores p asociados a cada predictor. Habitualmente consideraremos significativos aquellos predictores para los cuales p < 0, 05.
+
+COMPARACIÓN DE MODELOS
+Si calculamos el AIC para cada uno de los modelos ajustados hasta ahora (script 15.3),
+veremos que el AIC del modelo con dos predictores es menor. Sin embargo, al ser una medida relativa, hasta
+ahora no contamos con una prueba estadística que nos permita determinar si la diferencia es significativa.
+la función anova(object,
+...), que recibe como argumentos los diferentes modelos a comparar. La interpretación del resultado de
+esta prueba es sencilla: si el valor p obtenido es significativo, entonces el modelo más complejo (con más
+predictores) es mejor.
+
+SELECCIÓN DE PREDICTORES
+La cuarta condición para emplear RLM indica que debemos evitar la multicolinealidad. Esto es importante
+porque el ajuste de un modelo RLM asume que podemos cambiar una variable predictora, manteniendo las
+otras constantes. Cuando las variables predictoras están correlacionadas, se hace imposible cambiar el valor
+de una sin alterar también a las demás, desestabilizando la estimación de los coeficientes del modelo que
+indican cómo influye cada variable predictora en la variable de salida de forma independiente.
+El método más adecuado, aunque también el más complejo, es la regresión jerárquica. Es el que debemos
+considerar al momento de intentar probar una teoría y consiste en comenzar por incorporar en primer lugar
+aquellos predictores ya conocidos, en orden de importancia, en base a investiagiones previas
+En R, podemos realizar este método con ayuda de la función update(object, formula), que nos permite
+incorporar o quitar variables del modelo, donde:
+object: modelo previamente ajustado, en este caso con lm().
+formula: actualización de la fórmula para el nuevo modelo.
+
+
+Selección hacia adelante Se crea un modelo inicial nulo, es decir, sin predictores, para el cual únicamente
+se estima la intercepción. A continuación, se escoge como primer predictor aquel que tenga la correlación
+más alta con la variable de respuesta. Si dicho predictor incrementa la capacidad predictiva del modelo,
+se retiene en el modelo y se procede a seleccionar un segundo predictor. El modelo con una única
+variable ajustado al inicio de este capítulo tiene como predictor el peso de los automóviles, variable
+que en efecto tiene la más alta correlación con el rendimiento (variable de respuesta). El coeficiente de
+determinación para este modelo es R2 = 0, 7528, lo cual significa que explica aproximadamente el 75 %
+de la variabilidad de la respuesta. En consecuencia, existe aún un 25 % de variabilidad de la respuesta
+que aún no ha sido explicado.
+Para la selección de predictores adicionales, en cada repetición se escoge aquel predictor (que no haya
+sido previamente agregado al modelo) que tenga la máxima correlación semi-parcial con la respuesta, es decir, que explique la máxima porción de la varianza no cubierta por el modelo ya existente.
+Si la inclusión de este nuevo predictor mejora el poder predictivo del modelo, se incorpora de manera
+definitiva y se evalúa el siguiente predictor.
+Adicionalmente, se evalúa si la inclusión de cada nuevo predictor mejora (es decir, reduce) el AIC. Si
+ninguno de los posibles predictores restantes logra reducir este indicador, se detiene la inclusión de
+nuevos predictores.
+
+Eliminación hacia atrás Es el proceso inverso a la selección hacia adelante, puesto que se comienza desde
+un modelo con todas las variables para luego eliminar predictores uno a uno y evaluar el AIC. Si este
+último se reduce, se elimina dicho predictor y se reevalúa la contribución de los predictores que aún se
+encuentran en el modelo. Una vez más, el proceso se repite hasta que no es posible reducir el AIC.
+
+Es importante reiterar que solo debemos usar estos métodos si estamos explorando datos, pues de lo
+contrario incurriríamos en faltas a la ética.
+
+
+La función add1() evalúa la incorporación de cada nuevo predictor potencial (separadamente) a un modelo
+base y entrega algunas métricas para el efecto que tiene su incorporación, entre ellas el AIC. El mejor nuevo
+predictor corresponde, entonces, a aquella variable con el menor AIC.
+De manera similar, la función drop1() evalúa (separadamente) la eliminación potencial de cada predictor
+presente en un modelo base y entrega las mismas métricas que add1() para el efecto que tiene su eliminación.
+El mejor predictor a descartar es, una vez más, aquel que lleva a la mayor reducción en AIC.
+Por supuesto, R en la práctica ya cuenta con funciones que implementan los métodos para seleccionar predictores antes descritos (excepto la regresión jerárquica, por supuesto). Los tres primeros pueden efectuarse
+mediante la función step(object, scope, direction, trace), que usa add1() y drop1() de manera iterativa, donde:
+object: es un modelo ya ajustado que es usado como punto de partida.
+scope: es una lista de fórmulas que define el rango de modelos a explorar.
+direction: indica el tipo de selección a realizar, donde “forward” corresponde a selección hacia ade11
+lante; “backward”, a eliminación hacia atrás, y “both”, a regresión escalonada.
+trace: argumento opcional que indica si se quiere ver por consola el proceso realizado.
+
+
+EVALUACIÓN DE UN MODELO DE RLM
+
+Verificación de las condiciones
+A fin de que el modelo sea generalizable, tenemos que verificar el cumplimiento de las condiciones descritas
+en las primeras páginas de este capítulo. Es sencillo comprobar que las variables predictoras son dicotómicas
+o numéricas a nivel de intervalo y que ninguna de ellas corresponde a una constante. Adicionalmente, las
+observaciones son independientes entre sí por tratarse de modelos diferentes de automóviles que no parecen
+seguir un criterio de selección (más que los años de fabricación). A su vez, podemos comprobar que la variable
+dependiente es numérica a nivel de intervalo sin restricciones.
+
+Independencia de los residuos
+Esta condición significa que no debe existir autocorrelación en los residuos. Podemos probarlo con una prueba
+estadística específica conocida con el nombre de sus autores: la prueba de Durbin–Watson, que verifica si
+dos residuos adyacentes (un retardo), o incluso más alejados, están correlacionados
+La función durbinWatsonTest(model), del paquete car, nos permite aplicar la prueba de Durbin-Watson a
+los residuos. Sin embargo, debemos tener en cuenta que los resultados de esta prueba dependen del orden de
+los datos, por lo que al reordenar los datos se podrían obtener resultados diferentes
+
+Distribución normal de los residuos
+Tal como mencionamos previamente, la figura 15.15b muestra que los residuos podrían alejase un poco de la
+distribución normal. Al aplicar la prueba de Shapiro-Wilk, obtenemos como resultado
+p = 0, 080, por lo que podemos asumir que el supuesto se cumple, aunque manteniendo cautela por la cercanía
+con el nivel de significación
+
+Homocedasticidad de los residuos
+El gráfico muestra algunos residuos que se alejan levemente del rango general, pero que
+no parecen ser muy problemáticos.
+Una prueba adecuada para verificar esta condición es la de Breusch-Pagan-Godfrey, cuya hipótesis nula es que las varianzas de los residuos son iguales. En R, esta prueba está implementada en la función
+ncvTest(model) del paquete car. Al usarla para el ejemplo, obtenemos como resultado
+p = 0, 212, por lo que podemos concluir que el supuesto de homocedasticidad se cumple.

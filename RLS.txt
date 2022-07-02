@@ -1,0 +1,134 @@
+x es la variable explicativa o predictor (variable independiente).
+y es la variable de respuesta o de salida (variable dependiente).
+yˆ = β0 + β1x
+
+Llamamos intercepción (intercept, en inglés) al parámetro β0, que corresponde al punto en que la recta
+corta el eje y. A su vez, denominamos pendiente al parámetro β1, el cual determina la inclinación de la
+recta del modelo.
+
+dado un valor de x, el valor de y es, en promedio, yˆ. En otras palabras, yˆ corresponde al valor esperado de y para un
+determinado valor de x. En la práctica, existe una diferencia entre el valor esperado yˆ y el valor observado
+de y. Esta diferencia se denomina residuo y se denota e
+y = ˆy + e
+
+Formalmente, podemos medir la fuerza de una relación lineal
+mediante la correlación. 
+La correlación siempre toma un valor entre -1 y 1. Mientras más débil sea la relación entre dos variables, su
+valor será más cercano a 0. El signo de la correlación indica si la relación es directa (R > 0) o inversa (R < 0).
+Para el ejemplo de mtcars con la potencia del motor y rendimiento da un R de -0.776. 
+En R, podemos calcular la correlación entre dos variables usando la función cor(x, y), donde x es el predictor
+e y la respuesta.
+
+
+Si bien existen diversos métodos para ajustar un modelo lineal, el más empleado es el de la línea de mínimos
+cuadrados, que minimiza la suma de los cuadrados de los residuos.
+El método de mínimos cuadrados tiene las ventajas de ser fácil de calcular y de tomar en cuenta la discrepancia
+entre la magnitud del residuo y su efecto. “por ejemplo, desviarse
+por 4 suele ser más de dos veces peor que desviarse por 2”
+Condiciones:
+1. Los datos deben presentar una relación lineal.
+2. La distribución de los residuos debe ser cercana a la normal.
+3. La variabilidad de los puntos en torno a la línea de mínimos cuadrados debe ser aproximadamente
+constante.
+4. Las observaciones deben ser independientes entre sí. Esto significa que no se puede usar regresión lineal
+con series de tiempo (tema que va más allá de los alcances de este texto).
+
+Cuando contamos con más de una variable para construir una regresión lineal simple (RLS), lo más adecuado
+es que escojamos como predictor aquella variable que tenga la correlación más fuerte con la variable de
+respuesta.
+
+Desde luego, R ofrece una función que permite ajustar la recta de mínimos cuadrados para un par de variables:
+lm(formula, data), donde:
+formula: tiene la forma <variable de respueta>∼<variable predictora>.
+data: matriz de datos.
+regresión lineal simple para predecir el rendimiento de un automóvil a partir de su peso.
+
+
+se observan en el gráfico de los residuos cuando sí se
+verifican todas las condiciones o, en otras palabras, cuando el modelo de RLS es apropiado:
+1. Un gráfico en que los residuos se distribuyen aleatoriamente en torno a la línea de valor 0, sugiere que
+es razonable suponer que las variables presentan una relación lineal.
+2. Cuando los residuos forman una “banda horizontal´´ en torno a la línea de valor 0, sugiere una variabildad aproximadamente constante de los residuos.
+3. La ausencia de residuos que se alejen del patrón que forman los demás sugiere la ausencia de valores
+atípicos.
+
+
+Supongamos que queremos predecir el rendimiento de un auto norteamericano (modelo 1974) cuyo peso es
+de 4.260 libras (es decir, wt = 4, 260). Para ello, basta con reemplazar el valor del predictor en el modelo:
+mpg d = 37, 285 − 5, 344 · 4, 260 = 14, 520
+En R, la función predict(object, newdata) nos permite usar un modelo (en este caso, una RLS) para
+predecir una respuesta. Los argumentos de esta función son:
+object: el modelo a emplear.
+newdata: matriz de datos con las nuevas instancias para las que se desea efectuar la predicción, la cual
+debe tener todas las columnas presentes en la fórmula del modelo (para el ejemplo, mpg y wt).
+
+
+REGRESIÓN LINEAL CON UN PREDICTOR CATEGÓRICO
+
+Los valores atípicos que se alejan horizontalmente del centro de la nube principal de puntos pueden, potencialmente, tener una gran influencia en el ajuste de la línea de regresión. Este fenómeno se conoce como
+apalancamiento 
+
+bondad de ajuste 
+Una medida muy útil que podemos usar para evaluar la bondad de ajuste de un modelo de regresión
+lineal con respecto a las observaciones es el coeficiente de determinación, que corresponde al cuadrado
+de la correlación, por lo que suele también denominarse R-cuadrado (R2
+) (Glen, 2021). Esta medida, cuyo
+valor varía entre 0 y 1, corresponde al porcentaje de la variabilidad de la respuesta que es explicado por el
+predictor
+R2 = −0, 8682 = 0, 753
+En consecuencia, la recta de regresión lineal, construida con el peso del vehículo como predictor, explica
+75,3 % de la variabilidad en el rendimiento.
+
+Validación cruzada
+nos falta verificar si el modelo puede generalizarse. Una estrategia
+frecuente para esto es la validación cruzada,el conjunto de datos se separa en dos fragmentos:
+
+Conjunto de entrenamiento: suele contener entre el 80 % y el 90 % de las observaciones (aunque es
+frecuente encontrar que solo contenga el 70 % de ellas), escogidas de manera aleatoria, y se emplea para
+ajustar la recta con el método de mínimos cuadrados.
+
+Conjunto de prueba: contiene el 10 % a 30 % restante de las instancias, y se usa para evaluar el
+modelo con datos nuevos.
+
+La idea detrás de este método es evaluar cómo se comporta el modelo con datos que no ha visto previamente,
+en comparación al comportamiento con el conjunto de entrenamiento. Una buena métrica que podemos usar
+para esta tarea es el error cuadrático medio, o MSE por sus siglas en inglés, pues es lo que el método de
+mínimos cuadrados busca minimizar.
+
+Fijémonos en que, para el conjunto de entrenamiento, el error cuadrático medio es MSEe = 5, 652,
+mientras que para el conjunto de prueba obtenemos MSEp = 17, 516, bastante más elevado (¡más del triple!).
+Esto sugiere que el modelo puede estar sobreajustado, es decir, que se adapta bien a los datos del conjunto de
+entrenamiento pero no tanto al conjunto de prueba, por lo que podría ser imprudente suponer que puede ser
+generalizado. Sin embargo, esto puede deberse a la separación aleatoria de los datos. Al ejecutar el script 14.4
+reemplazando la semilla aleatoria por 125, obtenemos el resultado de la figura 14.15. Podemos notar que los
+parámetros del modelo son algo diferentes a los obtenidos con la semilla 101. Además, ahora el error cuadrático
+medio para el conjunto de entrenamiento es MSEe = 8, 596 y para el conjunto de prueba, MSEp = 9, 122.
+Estos últimos valores son muy parecidos, por lo que este segundo modelo sí podría ser generalizable.
+
+Validación cruzada de k pliegues
+En R, podemos realizar este proceso de forma bastante sencilla gracias a la función train(formula, method
+= “lm”, trControl = trainControl(method = “cv”, number) del paquete caret, donde:
+formula: fórmula que se emplea en las llamadas internas a lm().
+number: cantidad de pliegues (k).
+El lector atento habrá notado que hemos asignado valores fijos a algunos de los argumentos de la función
+train(). Esto se debe a que este método sirve para ajustar muchos otros modelos además de la RLS.
+
+Validación cruzada dejando uno fuera
+El esquema
+es el mismo que para validación cruzada con k pliegues, pero ahora usaremos tantos pliegues como observaciones tenga el conjunto de entrenamiento. En otras palabras, hacemos una iteración por cada elemento del
+conjunto de entrenamiento, reservando una única observación para validación. En R, la llamada a train()
+es muy similar a la que hicimos para validación cruzada con k pliegues: solo cambia el argumento trControl,
+cuyo valor ahora debe ser trainControl(method = "LOOCV")
+
+INFERENCIA PARA REGRESIÓN LINEAL
+El gerente, con la intención de evaluar a una abatida estudiante en práctica que aún no ha cursado su
+asignatura de estadística, le ha entregado los resultados obtenidos y le ha preguntado si los datos sustentan
+su teoría de que la cantidad de requisitos funcionales disminuye a medida que la cantidad de stakeholders
+aumenta. Tras muchas horas buscando información, la estudiante ha formulado las siguientes hipótesis:
+H0: β1 = 0. La pendiente del modelo es igual a 0 o, lo que es lo mismo, la cantidad de stakeholders no
+explica en absoluto la cantidad de requisitos funcionales.
+HA: β1 < 0.
+Puesto que el valor p entregado por R corresponde a una prueba bilateral (fijarse en el valor absoluto que
+incluye el título de la columna: Pr(>|t|)), en el caso unilateral se debe considerar la mitad de este valor. En
+consecuencia, el gerente concluye, con 99 % de confianza (p < 0.002), que en efecto la cantidad de requisitos
+funcionales disminuye a medida que la cantidad de stakeholders aumenta.
